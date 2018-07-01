@@ -5,6 +5,8 @@
 
 #include <boost/asio.hpp>
 
+#include "connect_manager.hpp"
+
 namespace monitord {
 namespace server {
 
@@ -31,6 +33,7 @@ private:
   boost::asio::signal_set signal_set_;
   boost::asio::ip::tcp::acceptor acceptor_;
   boost::asio::ip::tcp::socket socket_;
+  connect_manager manager_;
 };
 
 } // namespace server

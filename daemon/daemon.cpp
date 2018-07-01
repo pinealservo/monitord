@@ -58,13 +58,8 @@ void daemon::do_accept()
 
         std::cout << "Accepted a connection!" << std::endl;
 
-        // @todo real connection management
-
-        // make a shared pointer to a new connection; we will immediately
-        // destroy our reference after starting it, but it will store its own
-        // reference that will live until the write callback finishes, ensuring
-        // it gets cleaned up
-        std::make_shared<connection>(std::move(socket_))->start();
+        // Use a shared pointer to keep the connection object allocated until references are gone
+        manager_.add(std::make_shared<connection>(std::move(socket_), manager_));
       }
 
       // invoke ourselves recursively to continue accepting
@@ -80,7 +75,7 @@ void daemon::do_await_signal()
 
       std::cout << "Shutting down due to signal" << std::endl;
 
-      // @todo Clean up any active connections here
+      manager_.shutdown();
     });
 }
 
