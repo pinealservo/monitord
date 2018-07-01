@@ -1,0 +1,100 @@
+#include <iostream>
+
+#include <signal.h>
+
+#include "daemon.hpp"
+
+#define DAEMON_PORT 5001
+
+namespace monitord {
+namespace server {
+
+void connection::start()
+{
+  // make a new reference to store in the closure that async_write gets
+  auto self(shared_from_this());
+
+  boost::asio::async_write(
+    socket_,
+    boost::asio::buffer(data_),
+    [this, self](boost::system::error_code ec, std::size_t) {
+        if (!ec)
+          socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_send);
+      });
+}
+
+daemon::daemon(void)
+  : io_service_(),
+    signal_set_(io_service_),
+    acceptor_(io_service_),
+    socket_(io_service_)
+{
+  // Register signals so we can terminate cleanly
+  signal_set_.add(SIGINT);
+  signal_set_.add(SIGTERM);
+
+  // Await a signal
+  do_await_signal();
+
+  // Set up the asio TCP listening socket
+  boost::asio::ip::tcp::endpoint tcp_endpoint{boost::asio::ip::tcp::v4(), DAEMON_PORT};
+
+  acceptor_.open(tcp_endpoint.protocol());
+  // set reuse_address option so we don't have to wait between restarts
+  acceptor_.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
+  acceptor_.bind(tcp_endpoint);
+  acceptor_.listen();
+
+  do_accept();
+}
+
+void daemon::run()
+{
+  io_service_.run();
+}
+
+void daemon::do_accept()
+{
+  static const std::string greeting{"Hello, World!\n"};
+
+  std::cout << "Waiting for a new connection..." << std::endl;
+
+  acceptor_.async_accept(socket_, [this](boost::system::error_code ec) {
+      // Return immediately if the signal handler closed the acceptor; this will end the daemon
+      if (!acceptor_.is_open()) {
+        return;
+      }
+
+      // Successful accept
+      if (!ec) {
+
+        std::cout << "Accepted a connection!" << std::endl;
+
+        // @todo real connection management
+
+        // make a shared pointer to a new connection; we will immediately
+        // destroy our reference after starting it, but it will store its own
+        // reference that will live until the write callback finishes, ensuring
+        // it gets cleaned up
+        std::make_shared<connection>(std::move(socket_))->start();
+      }
+
+      // invoke ourselves recursively to continue accepting
+      do_accept();
+    });
+}
+
+void daemon::do_await_signal()
+{
+  signal_set_.async_wait([this](boost::system::error_code, int) {
+      // We got a signal, so stop accepting new connections
+      acceptor_.close();
+
+      std::cout << "Shutting down due to signal" << std::endl;
+
+      // @todo Clean up any active connections here
+    });
+}
+
+} // namespace server
+} // namespace monitord
