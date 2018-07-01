@@ -1,6 +1,8 @@
 #include "connection.hpp"
 #include "connect_manager.hpp"
 
+#include "stats.hpp"
+
 namespace monitord {
 namespace server {
 
@@ -36,7 +38,7 @@ void connection::do_read_command()
         }
 
         case command::Cpu: {
-          auto response = std::string("cpu command\n");
+          auto response = cpu_stats();
           response_length = response.length();
           response.copy(data_, response_length, 0);
 
@@ -44,7 +46,7 @@ void connection::do_read_command()
         }
 
         case command::Mem: {
-          auto response = std::string("mem command\n");
+          auto response = mem_stats();
           response_length = response.length();
           response.copy(data_, response_length, 0);
           break;
