@@ -1,26 +1,12 @@
 #ifndef DAEMON_H
 #define DAEMON_H
 
-#include <boost/asio.hpp>
-
 #include <memory>
+
+#include <boost/asio.hpp>
 
 namespace monitord {
 namespace server {
-
-/// Class for managing connections to the daemon server
-class connection : public std::enable_shared_from_this<connection>
-{
-public:
-  explicit connection(boost::asio::ip::tcp::socket sock) :
-    socket_(std::move(sock)),
-    data_{"Hello, World!\n"} {};
-  void start();
-private:
-  boost::asio::ip::tcp::socket socket_;
-  enum { MAX_LENGTH = 256 };
-  char data_[MAX_LENGTH];
-};
 
 /// Top-level class for the monitor daemon server component
 class daemon

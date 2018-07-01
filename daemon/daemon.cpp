@@ -3,25 +3,13 @@
 #include <signal.h>
 
 #include "daemon.hpp"
+#include "connection.hpp"
 
 #define DAEMON_PORT 5001
 
 namespace monitord {
 namespace server {
 
-void connection::start()
-{
-  // make a new reference to store in the closure that async_write gets
-  auto self(shared_from_this());
-
-  boost::asio::async_write(
-    socket_,
-    boost::asio::buffer(data_),
-    [this, self](boost::system::error_code ec, std::size_t) {
-        if (!ec)
-          socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_send);
-      });
-}
 
 daemon::daemon(void)
   : io_service_(),
@@ -33,12 +21,12 @@ daemon::daemon(void)
   signal_set_.add(SIGINT);
   signal_set_.add(SIGTERM);
 
-  // Await a signal
+  // Add a signal await async operation to the io_service
   do_await_signal();
 
   // Set up the asio TCP listening socket
-  boost::asio::ip::tcp::endpoint tcp_endpoint{boost::asio::ip::tcp::v4(), DAEMON_PORT};
 
+  boost::asio::ip::tcp::endpoint tcp_endpoint{boost::asio::ip::tcp::v4(), DAEMON_PORT};
   acceptor_.open(tcp_endpoint.protocol());
   // set reuse_address option so we don't have to wait between restarts
   acceptor_.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));

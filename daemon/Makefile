@@ -1,5 +1,5 @@
 QUIET = @
-OBJS := main.o daemon.o
+OBJS := main.o daemon.o connection.o
 
 CC = g++
 LDLIBS = -lpthread -lboost_system
@@ -13,3 +13,4 @@ clean:
 
 daemon: $(OBJS)
 main.o daemon.o: daemon.hpp
+daemon.o connection.o: connection.hpp
