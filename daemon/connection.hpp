@@ -35,11 +35,16 @@ public:
   void stop();
 
 private:
+  /// Read an incoming command from the socket
+  void do_read_command();
+
+  /// Write the response to the socket
+  void do_write_response(std::size_t bytes);
 
   boost::asio::ip::tcp::socket socket_;
   connect_manager& manager_;
 
-  enum { MAX_LENGTH = 256 };
+  enum { MAX_LENGTH = 1024 };
   char data_[MAX_LENGTH];
 };
 
