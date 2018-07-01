@@ -12,6 +12,9 @@ namespace server {
 // remove connections when they close normally
 class connect_manager;
 
+// The commands that the server recognizes
+enum class command { Unknown, Cpu, Mem };
+
 /// Class for managing connections to the daemon server
 class connection : public std::enable_shared_from_this<connection>
 {
@@ -40,6 +43,9 @@ private:
 
   /// Write the response to the socket
   void do_write_response(std::size_t bytes);
+
+  /// Parse a command
+  command parse_command(const std::string &cmdstring);
 
   boost::asio::ip::tcp::socket socket_;
   connect_manager& manager_;

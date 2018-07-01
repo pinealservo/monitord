@@ -23,10 +23,38 @@ void connection::do_read_command()
     boost::asio::buffer(data_),
     [this, self](boost::system::error_code ec, std::size_t bytes_read) {
       if (!ec) {
-        // @todo Parse command here
-        // For now, we'll echo back what was sent
-        do_write_response(bytes_read);
+        command cmd = parse_command(std::string(data_, bytes_read));
+        std::size_t response_length;
+
+        switch (cmd) {
+
+        case command::Unknown: {
+          auto response = std::string("Unknown command\n");
+          response_length = response.length();
+          response.copy(data_, response_length, 0);
+          break;
+        }
+
+        case command::Cpu: {
+          auto response = std::string("cpu command\n");
+          response_length = response.length();
+          response.copy(data_, response_length, 0);
+
+          break;
+        }
+
+        case command::Mem: {
+          auto response = std::string("mem command\n");
+          response_length = response.length();
+          response.copy(data_, response_length, 0);
+          break;
+        }
+
+        }
+
+        do_write_response(response_length);
       }
+
       else if (ec != boost::asio::error::operation_aborted) {
         manager_.remove(shared_from_this());
       }
@@ -51,6 +79,19 @@ void connection::do_write_response(std::size_t bytes)
         manager_.remove(shared_from_this());
       }
     });
+}
+
+command connection::parse_command(const std::string &cmdstring)
+{
+  if (cmdstring == "mem\n") {
+    return command::Mem;
+  }
+
+  if (cmdstring == "cpu\n") {
+    return command::Cpu;
+  }
+
+  return command::Unknown;
 }
 
 } // namespace server
