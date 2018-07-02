@@ -11,14 +11,15 @@ class cpu_monitor
 public:
   cpu_monitor(const cpu_monitor&) = delete;
   cpu_monitor& operator=(const cpu_monitor&) = delete;
-  cpu_monitor() {}
+  cpu_monitor() : prev_total_(0), prev_idle_(0), current_load_(0) {}
 
   void do_update();
   double get_load();
   std::string mem_stats();
 private:
-  std::size_t prev_total_;
-  std::size_t prev_idle_;
+  double prev_total_;
+  double prev_idle_;
+  double current_load_;
 };
 
 } // namespace server
