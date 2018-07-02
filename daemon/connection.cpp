@@ -1,6 +1,5 @@
 #include "connection.hpp"
 #include "connect_manager.hpp"
-
 #include "stats.hpp"
 
 namespace monitord {
@@ -38,7 +37,11 @@ void connection::do_read_command()
         }
 
         case command::Cpu: {
-          auto response = cpu_stats();
+          double load = monitor_.get_load();
+          std::stringstream ss;
+          ss << load << std::endl;
+          std::string response(ss.str());
+
           response_length = response.length();
           response.copy(data_, response_length, 0);
 
@@ -46,7 +49,7 @@ void connection::do_read_command()
         }
 
         case command::Mem: {
-          auto response = mem_stats();
+          auto response = monitor_.mem_stats();
           response_length = response.length();
           response.copy(data_, response_length, 0);
           break;

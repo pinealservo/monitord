@@ -4,8 +4,10 @@
 #include <memory>
 
 #include <boost/asio.hpp>
+#include <boost/asio/steady_timer.hpp>
 
 #include "connect_manager.hpp"
+#include "stats.hpp"
 
 namespace monitord {
 namespace server {
@@ -29,11 +31,16 @@ private:
   /// Register an asynchronous await for reception of an OS signal
   void do_await_signal();
 
+  /// Periodically read monitored stats
+  void do_update_stats();
+
   boost::asio::io_service io_service_;
   boost::asio::signal_set signal_set_;
+  boost::asio::steady_timer timer_;
   boost::asio::ip::tcp::acceptor acceptor_;
   boost::asio::ip::tcp::socket socket_;
   connect_manager manager_;
+  cpu_monitor monitor_;
 };
 
 } // namespace server

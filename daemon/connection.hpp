@@ -11,6 +11,7 @@ namespace server {
 // Forward declare the manager class; we need to keep a reference to it so we can
 // remove connections when they close normally
 class connect_manager;
+class cpu_monitor;
 
 // The commands that the server recognizes
 enum class command { Unknown, Cpu, Mem };
@@ -26,10 +27,13 @@ public:
 
   /// Construct a new connection from its socket
   explicit connection(boost::asio::ip::tcp::socket sock,
-                      connect_manager& manager) :
+                      connect_manager& manager,
+                      cpu_monitor& monitor) :
     socket_(std::move(sock)),
     manager_(manager),
-    data_{"Hello, World!\n"} {};
+    monitor_(monitor)
+  {
+  }
 
   /// Run the socket processing
   void start();
@@ -49,6 +53,7 @@ private:
 
   boost::asio::ip::tcp::socket socket_;
   connect_manager& manager_;
+  cpu_monitor& monitor_;
 
   enum { MAX_LENGTH = 1024 };
   char data_[MAX_LENGTH];
